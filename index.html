@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bar Segrate</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --espresso: #1a0e07;
+    --crema: #f5ead6;
+    --caramel: #c8852a;
+    --gold: #e8b86d;
+    --latte: #d4b896;
+    --dark: #0f0905;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--espresso); color: var(--crema); font-family: 'Raleway', sans-serif; font-weight: 300; overflow-x: hidden; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 999; opacity: 0.4;
+  }
+
+  /* ── ADMIN BUTTON ── */
+  .admin-trigger {
+    position: fixed; bottom: 28px; right: 28px;
+    background: rgba(200,133,42,0.15); border: 1px solid rgba(232,184,109,0.3);
+    color: var(--gold); font-family: 'Raleway', sans-serif; font-size: 11px;
+    letter-spacing: 0.25em; text-transform: uppercase; padding: 10px 18px;
+    cursor: pointer; z-index: 900; transition: all 0.3s;
+  }
+  .admin-trigger:hover { background: rgba(200,133,42,0.3); border-color: var(--gold); }
+
+  /* ── MODAL ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,6,3,0.93); z-index: 1000; overflow-y: auto; }
+  .modal-overlay.active { display: block; }
+
+  /* ── LOGIN ── */
+  .login-panel { max-width: 400px; margin: 120px auto; padding: 48px; border: 1px solid rgba(232,184,109,0.2); background: rgba(26,14,7,0.98); }
+  .login-panel h2 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 900; margin-bottom: 8px; }
+  .login-panel h2 em { font-style: italic; color: var(--gold); }
+  .login-panel p { font-size: 13px; color: var(--latte); margin-bottom: 32px; }
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .form-group input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(232,184,109,0.2); color: var(--crema); font-family: 'Raleway', sans-serif; font-size: 14px; padding: 12px 16px; outline: none; transition: border-color 0.3s; }
+  .form-group input:focus { border-color: var(--gold); }
+  .btn-login { width: 100%; background: var(--caramel); color: var(--dark); border: none; font-family: 'Raleway', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; padding: 14px; cursor: pointer; margin-top: 8px; transition: background 0.3s; }
+  .btn-login:hover { background: var(--gold); }
+  .login-error { font-size: 13px; color: #e07070; margin-top: 12px; display: none; }
+  .back-link { background: transparent; border: none; color: var(--latte); font-family: 'Raleway', sans-serif; font-size: 12px; cursor: pointer; letter-spacing: 0.1em; margin-top: 24px; display: block; }
+
+  /* ── ADMIN PANEL ── */
+  .admin-panel { display: none; max-width: 920px; margin: 0 auto; padding: 40px 32px 80px; }
+  .admin-panel.active { display: block; }
+  .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; padding-bottom: 24px; border-bottom: 1px solid rgba(232,184,109,0.15); }
+  .admin-header h1 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; }
+  .admin-header h1 em { font-style: italic; color: var(--gold); }
+  .btn-logout { background: transparent; border: 1px solid rgba(232,184,109,0.3); color: var(--latte); font-family: 'Raleway', sans-serif; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; transition: all 0.3s; }
+  .btn-logout:hover { border-color: var(--gold); color: var(--gold); }
+
+  .admin-tabs { display: flex; gap: 4px; margin-bottom: 32px; border-bottom: 1px solid rgba(232,184,109,0.1); }
+  .admin-tab { background: transparent; border: none; color: var(--latte); font-family: 'Raleway', sans-serif; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; padding: 12px 20px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.3s; }
+  .admin-tab:hover { color: var(--crema); }
+  .admin-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  .admin-section { display: none; }
+  .admin-section.active { display: block; }
+
+  .admin-form { background: rgba(255,255,255,0.025); border: 1px solid rgba(232,184,109,0.1); padding: 28px; margin-bottom: 24px; }
+  .admin-form h3 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 20px; color: var(--gold); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-row.single { grid-template-columns: 1fr; }
+  .admin-form input, .admin-form textarea, .admin-form select { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(232,184,109,0.15); color: var(--crema); font-family: 'Raleway', sans-serif; font-size: 14px; padding: 10px 14px; outline: none; transition: border-color 0.3s; }
+  .admin-form input:focus, .admin-form textarea:focus { border-color: var(--gold); }
+  .admin-form textarea { resize: vertical; min-height: 80px; }
+  .admin-form label { display: block; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--latte); margin-bottom: 6px; }
+  .btn-save { background: var(--caramel); color: var(--dark); border: none; font-family: 'Raleway', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; padding: 12px 28px; cursor: pointer; margin-top: 8px; transition: background 0.3s; }
+  .btn-save:hover { background: var(--gold); }
+  .save-msg { font-size: 12px; color: #7ecf7e; margin-left: 12px; opacity: 0; transition: opacity 0.3s; }
+  .save-msg.visible { opacity: 1; }
+
+  .items-list { display: flex; flex-direction: column; gap: 8px; }
+  .item-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid rgba(232,184,109,0.08); padding: 12px 16px; gap: 12px; }
+  .item-info { flex: 1; }
+  .item-title { font-size: 14px; color: var(--crema); }
+  .item-sub { font-size: 12px; color: var(--latte); margin-top: 2px; }
+  .btn-delete { background: transparent; border: 1px solid rgba(224,112,112,0.3); color: #e07070; font-family: 'Raleway', sans-serif; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 12px; cursor: pointer; flex-shrink: 0; transition: all 0.3s; }
+  .btn-delete:hover { background: rgba(224,112,112,0.1); border-color: #e07070; }
+  .empty-state { font-size: 13px; color: var(--latte); font-style: italic; padding: 20px 0; }
+
+  .orari-row { display: grid; grid-template-columns: 130px 1fr 1fr 120px; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .orari-row span { font-size: 13px; color: var(--crema); }
+  .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 11px; color: var(--latte); letter-spacing: 0.15em; text-transform: uppercase; }
+
+  /* ══ LANDING ══ */
+  .hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; position: relative; overflow: hidden; }
+  .hero-left { display: flex; flex-direction: column; justify-content: center; padding: 80px 60px 80px 80px; position: relative; z-index: 2; }
+  .hero-left::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, transparent, var(--gold), transparent); }
+  .eyebrow { font-size: 11px; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); margin-bottom: 28px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.3s; }
+  .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(56px, 7vw, 96px); font-weight: 900; line-height: 0.95; margin-bottom: 32px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.5s; }
+  .hero-title em { font-style: italic; color: var(--gold); }
+  .hero-desc { font-size: 16px; line-height: 1.8; color: var(--latte); max-width: 380px; margin-bottom: 48px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.7s; }
+  .hero-cta { display: flex; gap: 20px; align-items: center; opacity: 0; animation: fadeUp 0.8s ease forwards 0.9s; }
+  .btn-primary { background: var(--caramel); color: var(--dark); padding: 16px 36px; font-family: 'Raleway', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; transition: all 0.3s ease; position: relative; overflow: hidden; }
+  .btn-primary::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gold); transition: left 0.3s ease; }
+  .btn-primary:hover::before { left: 0; }
+  .btn-primary span { position: relative; z-index: 1; }
+  .btn-secondary { color: var(--latte); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; display: flex; align-items: center; gap: 10px; transition: color 0.3s; }
+  .btn-secondary:hover { color: var(--gold); }
+  .btn-secondary::after { content: '→'; transition: transform 0.3s; }
+  .btn-secondary:hover::after { transform: translateX(4px); }
+
+  .hero-right { position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .coffee-art { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+  .cup-wrap { position: relative; width: 340px; height: 340px; opacity: 0; animation: fadeIn 1.2s ease forwards 0.8s; }
+  .hero-circle { position: absolute; border-radius: 50%; border: 1px solid rgba(232,184,109,0.15); }
+  .circle-1 { width: 420px; height: 420px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation: spin 40s linear infinite; }
+  .circle-2 { width: 320px; height: 320px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation: spin 30s linear infinite reverse; }
+  .circle-3 { width: 220px; height: 220px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation: spin 20s linear infinite; }
+  .circle-1::before, .circle-2::before, .circle-3::before { content: ''; position: absolute; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; top: -3px; left: 50%; transform: translateX(-50%); }
+
+  .marquee-wrap { background: var(--caramel); overflow: hidden; padding: 14px 0; }
+  .marquee-track { display: flex; gap: 60px; animation: marquee 20s linear infinite; white-space: nowrap; }
+  .marquee-item { font-family: 'Playfair Display', serif; font-style: italic; font-size: 15px; color: var(--dark); flex-shrink: 0; }
+  .marquee-sep { color: rgba(15,9,5,0.4); }
+
+  .about { padding: 120px 80px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 100px; align-items: center; position: relative; }
+  .about::before { content: 'BAR'; position: absolute; font-family: 'Playfair Display', serif; font-size: 300px; font-weight: 900; color: rgba(255,255,255,0.02); top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; }
+  .section-label { font-size: 10px; letter-spacing: 0.5em; text-transform: uppercase; color: var(--gold); margin-bottom: 24px; display: flex; align-items: center; gap: 16px; }
+  .section-label::before { content: ''; width: 40px; height: 1px; background: var(--gold); }
+  .about-title { font-family: 'Playfair Display', serif; font-size: clamp(36px, 4vw, 54px); font-weight: 700; line-height: 1.1; margin-bottom: 28px; }
+  .about-title em { font-style: italic; color: var(--gold); }
+  .about-text { font-size: 16px; line-height: 1.9; color: var(--latte); margin-bottom: 20px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; position: relative; z-index: 1; }
+  .stat-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(232,184,109,0.1); padding: 40px 32px; transition: background 0.3s, border-color 0.3s; }
+  .stat-box:hover { background: rgba(200,133,42,0.08); border-color: rgba(232,184,109,0.3); }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 900; color: var(--gold); line-height: 1; margin-bottom: 8px; }
+  .stat-label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--latte); }
+
+  .menu-section { padding: 100px 80px; border-top: 1px solid rgba(232,184,109,0.1); }
+  .menu-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 64px; }
+  .menu-title { font-family: 'Playfair Display', serif; font-size: clamp(40px, 5vw, 64px); font-weight: 900; line-height: 1; }
+  .menu-title em { font-style: italic; color: var(--gold); display: block; }
+  .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+  .menu-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(232,184,109,0.08); padding: 48px 40px; position: relative; overflow: hidden; transition: all 0.4s ease; }
+  .menu-card::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--caramel); transform: scaleX(0); transition: transform 0.4s ease; transform-origin: left; }
+  .menu-card:hover { background: rgba(200,133,42,0.06); transform: translateY(-4px); }
+  .menu-card:hover::before { transform: scaleX(1); }
+  .menu-icon { font-size: 36px; margin-bottom: 24px; display: block; }
+  .menu-card-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+  .menu-card-desc { font-size: 14px; line-height: 1.7; color: var(--latte); }
+
+  /* Dynamic sections */
+  .dyn-section { padding: 100px 80px; border-top: 1px solid rgba(232,184,109,0.1); }
+  .dyn-title { font-family: 'Playfair Display', serif; font-size: clamp(36px,4vw,54px); font-weight: 900; margin-bottom: 48px; }
+  .dyn-title em { font-style: italic; color: var(--gold); }
+
+  .eventi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+  .evento-card { background: rgba(255,255,255,0.025); border: 1px solid rgba(232,184,109,0.08); padding: 36px 32px; transition: all 0.3s; }
+  .evento-card:hover { background: rgba(200,133,42,0.05); border-color: rgba(232,184,109,0.2); }
+  .evento-data { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .evento-titolo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+  .evento-desc { font-size: 13px; line-height: 1.7; color: var(--latte); }
+
+  .orari-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+  .orario-card { background: rgba(255,255,255,0.025); border: 1px solid rgba(232,184,109,0.08); padding: 24px 12px; text-align: center; transition: all 0.3s; }
+  .orario-card.today { border-color: rgba(232,184,109,0.4); background: rgba(200,133,42,0.08); }
+  .orario-giorno { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  .orario-ore { font-family: 'Playfair Display', serif; font-size: 14px; color: var(--crema); line-height: 1.6; }
+  .orario-chiuso { font-size: 12px; color: var(--latte); font-style: italic; }
+
+  .foto-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 4px; }
+  .foto-item { aspect-ratio: 4/3; overflow: hidden; position: relative; background: rgba(255,255,255,0.03); border: 1px solid rgba(232,184,109,0.08); }
+  .foto-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+  .foto-item:hover img { transform: scale(1.04); }
+  .foto-caption { position: absolute; bottom: 0; left: 0; right: 0; padding: 12px 16px; background: rgba(10,6,3,0.7); font-size: 12px; color: var(--latte); transform: translateY(100%); transition: transform 0.3s; }
+  .foto-item:hover .foto-caption { transform: translateY(0); }
+
+  .menu-categoria { margin-bottom: 48px; }
+  .menu-categoria-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--gold); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(232,184,109,0.15); }
+  .menu-voce { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 0; border-bottom: 1px solid rgba(232,184,109,0.06); }
+  .menu-voce-nome { font-size: 16px; color: var(--crema); }
+  .menu-voce-desc { font-size: 13px; color: var(--latte); margin-top: 3px; }
+  .menu-voce-prezzo { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--gold); flex-shrink: 0; margin-left: 20px; }
+
+  .visit-section { padding: 100px 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; border-top: 1px solid rgba(232,184,109,0.1); align-items: center; }
+  .visit-title { font-family: 'Playfair Display', serif; font-size: clamp(36px,4vw,56px); font-weight: 900; line-height: 1.05; margin-bottom: 16px; }
+  .visit-title em { font-style: italic; color: var(--gold); }
+  .visit-sub { font-size: 15px; color: var(--latte); line-height: 1.7; margin-bottom: 48px; }
+  .info-rows { display: flex; flex-direction: column; }
+  .info-row { display: flex; align-items: center; gap: 20px; padding: 20px 0; border-bottom: 1px solid rgba(232,184,109,0.1); }
+  .info-row:first-child { border-top: 1px solid rgba(232,184,109,0.1); }
+  .info-icon { width: 42px; height: 42px; border: 1px solid rgba(232,184,109,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; transition: all 0.3s; }
+  .info-row:hover .info-icon { background: var(--caramel); border-color: var(--caramel); }
+  .info-label { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+  .info-val { font-size: 15px; color: var(--crema); }
+  .map-placeholder { background: rgba(255,255,255,0.02); border: 1px solid rgba(232,184,109,0.1); height: 400px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .map-placeholder::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(232,184,109,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(232,184,109,0.04) 1px,transparent 1px); background-size: 40px 40px; }
+  .map-inner { text-align: center; position: relative; z-index: 1; }
+  .map-pin { font-size: 48px; display: block; margin-bottom: 16px; animation: bounce 2s ease-in-out infinite; }
+  .map-address { font-size: 13px; color: var(--latte); line-height: 1.6; }
+  .map-link { display: inline-block; margin-top: 20px; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(232,184,109,0.4); padding-bottom: 4px; transition: color 0.3s,border-color 0.3s; }
+  .map-link:hover { color: var(--crema); border-color: var(--crema); }
+
+  footer { padding: 60px 80px; border-top: 1px solid rgba(232,184,109,0.1); display: flex; align-items: center; justify-content: space-between; }
+  .footer-brand { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; }
+  .footer-brand em { font-style: italic; color: var(--gold); }
+  .footer-links { display: flex; gap: 32px; }
+  .footer-link { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--latte); text-decoration: none; transition: color 0.3s; }
+  .footer-link:hover { color: var(--gold); }
+  .footer-copy { font-size: 12px; color: rgba(212,184,150,0.4); }
+
+  @keyframes fadeUp { from { opacity:0;transform:translateY(30px); } to { opacity:1;transform:translateY(0); } }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes spin { to { transform:translate(-50%,-50%) rotate(360deg); } }
+  @keyframes marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+  @keyframes bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+
+  @media (max-width:900px) {
+    .hero { grid-template-columns:1fr; }
+    .hero-right { display:none; }
+    .hero-left { padding:80px 40px; }
+    .about,.visit-section { grid-template-columns:1fr;gap:40px;padding:80px 40px; }
+    .menu-section,.dyn-section { padding:80px 40px; }
+    .menu-grid,.eventi-grid,.foto-grid { grid-template-columns:1fr; }
+    .orari-grid { grid-template-columns:repeat(4,1fr); }
+    footer { flex-direction:column;gap:24px;text-align:center;padding:40px; }
+    .footer-links { flex-wrap:wrap;justify-content:center; }
+    .menu-header { flex-direction:column;align-items:flex-start;gap:20px; }
+    .form-row { grid-template-columns:1fr; }
+    .orari-row { grid-template-columns:1fr 1fr;gap:8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════
+     ADMIN OVERLAY
+════════════════════════════ -->
+<button class="admin-trigger" onclick="openAdmin()">Admin</button>
+
+<div class="modal-overlay" id="adminOverlay">
+
+  <!-- LOGIN -->
+  <div class="login-panel" id="loginPanel">
+    <h2>Area <em>Admin</em></h2>
+    <p>Accedi per gestire il contenuto del sito.</p>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="email@esempio.com" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Accedi</button>
+    <div class="login-error" id="loginError">Email o password non validi.</div>
+    <button class="back-link" onclick="closeAdmin()">← Torna al sito</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="admin-panel" id="adminDashboard">
+    <div class="admin-header">
+      <h1>Dashboard <em>Bar Segrate</em></h1>
+      <button class="btn-logout" onclick="doLogout()">Esci</button>
+    </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchTab('eventi',this)">🎉 Eventi</button>
+      <button class="admin-tab" onclick="switchTab('orari',this)">🕐 Orari</button>
+      <button class="admin-tab" onclick="switchTab('menu',this)">🍽 Menù</button>
+      <button class="admin-tab" onclick="switchTab('foto',this)">📷 Foto</button>
+    </div>
+
+    <!-- EVENTI -->
+    <div class="admin-section active" id="tab-eventi">
+      <div class="admin-form">
+        <h3>Aggiungi evento o promozione</h3>
+        <div class="form-row">
+          <div><label>Titolo *</label><input type="text" id="ev-titolo" placeholder="es. Aperitivo di Natale"></div>
+          <div><label>Data</label><input type="date" id="ev-data"></div>
+        </div>
+        <div class="form-row">
+          <div><label>Ora</label><input type="text" id="ev-ora" placeholder="es. 18:00"></div>
+        </div>
+        <div class="form-row single">
+          <div><label>Descrizione</label><textarea id="ev-desc" placeholder="Descrizione dell'evento..."></textarea></div>
+        </div>
+        <button class="btn-save" onclick="saveEvento()">Salva evento</button>
+        <span class="save-msg" id="ev-msg">✓ Salvato!</span>
+      </div>
+      <div class="items-list" id="eventi-list"></div>
+    </div>
+
+    <!-- ORARI -->
+    <div class="admin-section" id="tab-orari">
+      <div class="admin-form">
+        <h3>Orari di apertura settimanali</h3>
+        <p style="font-size:13px;color:var(--latte);margin-bottom:24px;">Imposta apertura e chiusura per ogni giorno. Spunta "Chiuso" per i giorni di riposo.</p>
+        <div id="orari-form-rows"></div>
+        <button class="btn-save" onclick="saveOrari()">Salva orari</button>
+        <span class="save-msg" id="orari-msg">✓ Salvato!</span>
+      </div>
+    </div>
+
+    <!-- MENU -->
+    <div class="admin-section" id="tab-menu">
+      <div class="admin-form">
+        <h3>Aggiungi voce al menù</h3>
+        <div class="form-row">
+          <div><label>Categoria *</label><input type="text" id="mn-cat" placeholder="es. Caffetteria, Colazione..."></div>
+          <div><label>Nome *</label><input type="text" id="mn-nome" placeholder="es. Cappuccino"></div>
+        </div>
+        <div class="form-row">
+          <div><label>Descrizione</label><input type="text" id="mn-desc" placeholder="Breve descrizione (opzionale)"></div>
+          <div><label>Prezzo (€)</label><input type="number" id="mn-prezzo" placeholder="1.50" step="0.10" min="0"></div>
+        </div>
+        <button class="btn-save" onclick="saveMenuVoce()">Aggiungi voce</button>
+        <span class="save-msg" id="mn-msg">✓ Aggiunto!</span>
+      </div>
+      <div class="items-list" id="menu-list"></div>
+    </div>
+
+    <!-- FOTO -->
+    <div class="admin-section" id="tab-foto">
+      <div class="admin-form">
+        <h3>Aggiungi foto alla galleria</h3>
+        <div class="form-row single"><div><label>URL immagine *</label><input type="url" id="foto-url" placeholder="https://..."></div></div>
+        <div class="form-row single"><div><label>Didascalia</label><input type="text" id="foto-cap" placeholder="es. Il bancone del bar"></div></div>
+        <button class="btn-save" onclick="saveFoto()">Aggiungi foto</button>
+        <span class="save-msg" id="foto-msg">✓ Aggiunta!</span>
+      </div>
+      <div class="items-list" id="foto-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     LANDING PAGE
+════════════════════════════ -->
+
+<section class="hero">
+  <div class="hero-left">
+    <div class="eyebrow">Est. Segrate, Milano &nbsp;·&nbsp; Via Conte Suardi 84</div>
+    <h1 class="hero-title">Bar<br><em>Segrate</em></h1>
+    <p class="hero-desc">Il luogo dove la giornata comincia bene. Un caffè, una brioche, una pausa. Il bar di quartiere che senti tuo fin dal primo sorso.</p>
+    <div class="hero-cta">
+      <a href="tel:3392966823" class="btn-primary"><span>Chiamaci</span></a>
+      <a href="https://maps.google.com/?q=Via+Conte+Suardi+84+Segrate+MI" target="_blank" class="btn-secondary">Come arrivare</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="coffee-art">
+      <div class="hero-circle circle-1"></div>
+      <div class="hero-circle circle-2"></div>
+      <div class="hero-circle circle-3"></div>
+      <div class="cup-wrap">
+        <svg viewBox="0 0 340 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M130 90 Q125 70 130 50 Q135 30 130 10" stroke="#c8852a" stroke-width="2" stroke-linecap="round" opacity="0.6"><animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/><animate attributeName="d" values="M130 90 Q125 70 130 50 Q135 30 130 10;M130 90 Q135 70 130 50 Q125 30 130 10;M130 90 Q125 70 130 50 Q135 30 130 10" dur="2s" repeatCount="indefinite"/></path>
+          <path d="M170 80 Q165 60 170 40 Q175 20 170 0" stroke="#c8852a" stroke-width="2.5" stroke-linecap="round" opacity="0.5"><animate attributeName="opacity" values="0.5;0;0.5" dur="2.5s" repeatCount="indefinite" begin="0.5s"/></path>
+          <path d="M210 90 Q215 70 210 50 Q205 30 210 10" stroke="#c8852a" stroke-width="2" stroke-linecap="round" opacity="0.6"><animate attributeName="opacity" values="0.6;0;0.6" dur="1.8s" repeatCount="indefinite" begin="1s"/></path>
+          <ellipse cx="170" cy="270" rx="110" ry="14" fill="#1f1208" stroke="#c8852a" stroke-width="1.5"/>
+          <ellipse cx="170" cy="266" rx="90" ry="9" fill="none" stroke="#e8b86d" stroke-width="0.5" opacity="0.4"/>
+          <path d="M100 155 L115 265 Q170 278 225 265 L240 155 Z" fill="#1a0e07" stroke="#c8852a" stroke-width="1.5"/>
+          <ellipse cx="170" cy="155" rx="70" ry="12" fill="#0f0905" stroke="#c8852a" stroke-width="1.5"/>
+          <ellipse cx="170" cy="155" rx="62" ry="10" fill="#3d1f0a"/>
+          <path d="M155 150 Q150 145 155 142 Q160 139 163 143 Q166 139 171 142 Q176 145 171 150 L163 158 Z" fill="#c8852a" opacity="0.7"/>
+          <path d="M240 175 Q280 175 280 205 Q280 235 240 235" stroke="#c8852a" stroke-width="8" stroke-linecap="round" fill="none"/>
+          <path d="M240 183 Q272 183 272 205 Q272 228 240 228" stroke="#1a0e07" stroke-width="4" stroke-linecap="round" fill="none"/>
+          <path d="M120 175 Q125 165 135 168" stroke="#e8b86d" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+          <path d="M220 260 L260 300" stroke="#e8b86d" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+          <ellipse cx="220" cy="258" rx="8" ry="5" fill="#e8b86d" opacity="0.7" transform="rotate(-45 220 258)"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">Espresso &amp; Cappuccino</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">Aperto tutti i giorni</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">Brioche fresche ogni mattina</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">Il tuo bar di fiducia</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">Segrate, Milano</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">Espresso &amp; Cappuccino</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">Aperto tutti i giorni</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">Brioche fresche ogni mattina</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">Il tuo bar di fiducia</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">Segrate, Milano</span><span class="marquee-sep">✦</span>
+  </div>
+</div>
+
+<section class="about">
+  <div>
+    <div class="section-label">Chi siamo</div>
+    <h2 class="about-title">Un caffè<br>come si<br><em>deve.</em></h2>
+    <p class="about-text">Bar Segrate è il posto dove ci si incontra, ci si siede, e la giornata prende la forma giusta. Siamo qui per chi vuole un espresso fatto bene, una pausa meritata o semplicemente un posto familiare dove sentirsi a casa.</p>
+    <p class="about-text">In via Conte Suardi, nel cuore di Segrate, il nostro bar è un punto di riferimento per il quartiere — con il calore che solo i bar veri sanno dare.</p>
+  </div>
+  <div class="stats">
+    <div class="stat-box"><div class="stat-num">Dal</div><div class="stat-label">Mattino presto</div></div>
+    <div class="stat-box"><div class="stat-num">7:30</div><div class="stat-label">Chiusura serale</div></div>
+    <div class="stat-box"><div class="stat-num">☕</div><div class="stat-label">Caffè artigianale</div></div>
+    <div class="stat-box"><div class="stat-num">📍</div><div class="stat-label">Segrate, Milano</div></div>
+  </div>
+</section>
+
+<section class="menu-section">
+  <div class="menu-header">
+    <div><div class="section-label">Il nostro menù</div><h2 class="menu-title">Cosa<br><em>offriamo</em></h2></div>
+    <p style="max-width:280px;font-size:14px;color:var(--latte);line-height:1.7;">Dal mattino alla sera, tutto quello che ti serve per una buona pausa.</p>
+  </div>
+  <div class="menu-grid">
+    <div class="menu-card"><span class="menu-icon">☕</span><h3 class="menu-card-title">Caffetteria</h3><p class="menu-card-desc">Espresso, macchiato, cappuccino, latte. Ogni tazza preparata con cura, ogni volta.</p></div>
+    <div class="menu-card"><span class="menu-icon">🥐</span><h3 class="menu-card-title">Colazione</h3><p class="menu-card-desc">Brioche, cornetti, pasticcini freschi. La colazione che ti mette il buon umore.</p></div>
+    <div class="menu-card"><span class="menu-icon">🥪</span><h3 class="menu-card-title">Pranzo rapido</h3><p class="menu-card-desc">Panini, tramezzini, toast. Per chi ha poco tempo ma non vuole rinunciare al gusto.</p></div>
+    <div class="menu-card"><span class="menu-icon">🥤</span><h3 class="menu-card-title">Aperitivo</h3><p class="menu-card-desc">Spritz, prosecco e analcolici. Il momento di staccare dalla giornata.</p></div>
+    <div class="menu-card"><span class="menu-icon">🍦</span><h3 class="menu-card-title">Gelato</h3><p class="menu-card-desc">Una pausa fresca quando ne hai più bisogno. Gusti classici e novità stagionali.</p></div>
+    <div class="menu-card"><span class="menu-icon">🧃</span><h3 class="menu-card-title">Bibite</h3><p class="menu-card-desc">Succhi, centrifugati, acque e tanto altro. Sempre fresco.</p></div>
+  </div>
+</section>
+
+<!-- SEZIONI DINAMICHE (appaiono solo se ci sono dati) -->
+<section class="dyn-section" id="eventi-section" style="display:none;">
+  <div class="section-label">Novità</div>
+  <h2 class="dyn-title">Eventi &amp; <em>promozioni</em></h2>
+  <div class="eventi-grid" id="eventi-grid"></div>
+</section>
+
+<section class="dyn-section" id="orari-section" style="display:none; background:rgba(255,255,255,0.01);">
+  <div class="section-label">Quando siamo aperti</div>
+  <h2 class="dyn-title">Orari di <em>apertura</em></h2>
+  <div class="orari-grid" id="orari-grid"></div>
+</section>
+
+<section class="dyn-section" id="menu-din-section" style="display:none;">
+  <div class="section-label">Prezzi</div>
+  <h2 class="dyn-title">Listino <em>prezzi</em></h2>
+  <div id="menu-din-content"></div>
+</section>
+
+<section class="dyn-section" id="foto-section" style="display:none;">
+  <div class="section-label">Il nostro spazio</div>
+  <h2 class="dyn-title">La nostra <em>atmosfera</em></h2>
+  <div class="foto-grid" id="foto-grid"></div>
+</section>
+
+<section class="visit-section">
+  <div>
+    <div class="section-label">Vieni a trovarci</div>
+    <h2 class="visit-title">Siamo qui,<br><em>ogni giorno.</em></h2>
+    <p class="visit-sub">Ci trovi in via Conte Suardi, 84 a Segrate. Fermati quando vuoi.</p>
+    <div class="info-rows">
+      <div class="info-row"><div class="info-icon">📍</div><div><div class="info-label">Indirizzo</div><div class="info-val">Via Conte Suardi, 84 · 20090 Segrate MI</div></div></div>
+      <div class="info-row"><div class="info-icon">🕐</div><div><div class="info-label">Orari</div><div class="info-val">Aperto · Chiude alle 19:30</div></div></div>
+      <div class="info-row"><div class="info-icon">📞</div><div><div class="info-label">Telefono</div><div class="info-val"><a href="tel:3392966823" style="color:inherit;text-decoration:none;">339 296 6823</a></div></div></div>
+    </div>
+  </div>
+  <div class="map-placeholder">
+    <div class="map-inner">
+      <span class="map-pin">📍</span>
+      <div class="map-address">Via Conte Suardi, 84<br>20090 Segrate (MI)</div>
+      <a class="map-link" href="https://maps.google.com/?q=Via+Conte+Suardi+84+20090+Segrate+MI" target="_blank">Apri in Google Maps</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-brand">Bar <em>Segrate</em></div>
+  <nav class="footer-links">
+    <a href="tel:3392966823" class="footer-link">Chiama</a>
+    <a href="https://maps.google.com/?q=Via+Conte+Suardi+84+Segrate+MI" target="_blank" class="footer-link">Mappa</a>
+  </nav>
+  <span class="footer-copy">© 2025 Bar Segrate · Segrate, Milano</span>
+</footer>
+
+<!-- ════════════════════════════
+     JAVASCRIPT
+════════════════════════════ -->
+<script>
+const SUPABASE_URL = 'https://urdconomiexgnjofytoj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_IiQYE-B9cZy1pGiF8EAGcg_XQ1GqQJM';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const GIORNI = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+
+/* ── ADMIN OPEN/CLOSE ── */
+function openAdmin() {
+  document.getElementById('adminOverlay').classList.add('active');
+  sb.auth.getSession().then(({ data }) => {
+    data.session ? showDashboard() : showLogin();
+  });
+}
+function closeAdmin() { document.getElementById('adminOverlay').classList.remove('active'); }
+function showLogin() { document.getElementById('loginPanel').style.display='block'; document.getElementById('adminDashboard').classList.remove('active'); }
+function showDashboard() { document.getElementById('loginPanel').style.display='none'; document.getElementById('adminDashboard').classList.add('active'); buildOrariForm(); loadAdminData(); }
+
+/* ── AUTH ── */
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const pwd   = document.getElementById('loginPassword').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
+  if (error) { document.getElementById('loginError').style.display='block'; }
+  else { document.getElementById('loginError').style.display='none'; showDashboard(); }
+}
+async function doLogout() { await sb.auth.signOut(); showLogin(); }
+
+/* ── TABS ── */
+function switchTab(name, btn) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function flash(id) {
+  const el = document.getElementById(id);
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 2500);
+}
+
+/* ════════════ EVENTI ════════════ */
+async function saveEvento() {
+  const titolo = document.getElementById('ev-titolo').value.trim();
+  if (!titolo) return alert('Inserisci un titolo.');
+  await sb.from('eventi').insert({ titolo, descrizione: document.getElementById('ev-desc').value.trim(), data: document.getElementById('ev-data').value||null, ora: document.getElementById('ev-ora').value.trim()||null });
+  ['ev-titolo','ev-desc','ev-ora'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('ev-data').value='';
+  flash('ev-msg'); loadEventi(); loadEventiPublic();
+}
+async function deleteEvento(id) {
+  if (!confirm('Eliminare questo evento?')) return;
+  await sb.from('eventi').delete().eq('id', id);
+  loadEventi(); loadEventiPublic();
+}
+async function loadEventi() {
+  const { data } = await sb.from('eventi').select('*').order('data',{ascending:true});
+  const list = document.getElementById('eventi-list');
+  if (!data?.length) { list.innerHTML='<p class="empty-state">Nessun evento aggiunto.</p>'; return; }
+  list.innerHTML = data.map(e => `<div class="item-row"><div class="item-info"><div class="item-title">${e.titolo}</div><div class="item-sub">${e.data?formatData(e.data):''}${e.ora?' · '+e.ora:''}</div></div><button class="btn-delete" onclick="deleteEvento('${e.id}')">Elimina</button></div>`).join('');
+}
+
+/* ════════════ ORARI ════════════ */
+function buildOrariForm() {
+  document.getElementById('orari-form-rows').innerHTML = GIORNI.map(g => `
+    <div class="orari-row">
+      <span>${g}</span>
+      <div><label>Apertura</label><input type="time" id="or-ap-${g}"></div>
+      <div><label>Chiusura</label><input type="time" id="or-ch-${g}"></div>
+      <div style="padding-top:18px;"><label class="checkbox-label"><input type="checkbox" id="or-cl-${g}"> Chiuso</label></div>
+    </div>`).join('');
+  loadOrariForm();
+}
+async function loadOrariForm() {
+  const { data } = await sb.from('orari').select('*');
+  if (!data) return;
+  data.forEach(r => {
+    const ap=document.getElementById('or-ap-'+r.giorno), ch=document.getElementById('or-ch-'+r.giorno), cl=document.getElementById('or-cl-'+r.giorno);
+    if(ap) ap.value=r.apertura||''; if(ch) ch.value=r.chiusura||''; if(cl) cl.checked=r.chiuso||false;
+  });
+}
+async function saveOrari() {
+  for (const g of GIORNI) {
+    const apertura=document.getElementById('or-ap-'+g).value, chiusura=document.getElementById('or-ch-'+g).value, chiuso=document.getElementById('or-cl-'+g).checked;
+    const { data: ex } = await sb.from('orari').select('id').eq('giorno',g).maybeSingle();
+    if (ex) await sb.from('orari').update({apertura,chiusura,chiuso}).eq('giorno',g);
+    else await sb.from('orari').insert({giorno:g,apertura,chiusura,chiuso});
+  }
+  flash('orari-msg'); loadOrariPublic();
+}
+
+/* ════════════ MENU ════════════ */
+async function saveMenuVoce() {
+  const nome=document.getElementById('mn-nome').value.trim(), cat=document.getElementById('mn-cat').value.trim();
+  if (!nome||!cat) return alert('Inserisci categoria e nome.');
+  await sb.from('menu_voci').insert({ categoria:cat, nome, descrizione:document.getElementById('mn-desc').value.trim(), prezzo:parseFloat(document.getElementById('mn-prezzo').value)||null });
+  ['mn-nome','mn-desc','mn-prezzo'].forEach(id=>document.getElementById(id).value='');
+  flash('mn-msg'); loadMenuAdmin(); loadMenuPublic();
+}
+async function deleteMenuVoce(id) {
+  if (!confirm('Eliminare questa voce?')) return;
+  await sb.from('menu_voci').delete().eq('id',id);
+  loadMenuAdmin(); loadMenuPublic();
+}
+async function loadMenuAdmin() {
+  const { data } = await sb.from('menu_voci').select('*').order('categoria').order('ordine');
+  const list = document.getElementById('menu-list');
+  if (!data?.length) { list.innerHTML='<p class="empty-state">Nessuna voce aggiunta.</p>'; return; }
+  list.innerHTML = data.map(v=>`<div class="item-row"><div class="item-info"><div class="item-title">${v.nome}${v.prezzo?' — €'+Number(v.prezzo).toFixed(2):''}</div><div class="item-sub">${v.categoria}${v.descrizione?' · '+v.descrizione:''}</div></div><button class="btn-delete" onclick="deleteMenuVoce('${v.id}')">Elimina</button></div>`).join('');
+}
+
+/* ════════════ FOTO ════════════ */
+async function saveFoto() {
+  const url=document.getElementById('foto-url').value.trim();
+  if (!url) return alert('Inserisci un URL.');
+  await sb.from('foto').insert({ url, didascalia:document.getElementById('foto-cap').value.trim()||null });
+  document.getElementById('foto-url').value=''; document.getElementById('foto-cap').value='';
+  flash('foto-msg'); loadFotoAdmin(); loadFotoPublic();
+}
+async function deleteFoto(id) {
+  if (!confirm('Eliminare questa foto?')) return;
+  await sb.from('foto').delete().eq('id',id);
+  loadFotoAdmin(); loadFotoPublic();
+}
+async function loadFotoAdmin() {
+  const { data } = await sb.from('foto').select('*').order('created_at',{ascending:false});
+  const list = document.getElementById('foto-list');
+  if (!data?.length) { list.innerHTML='<p class="empty-state">Nessuna foto aggiunta.</p>'; return; }
+  list.innerHTML = data.map(f=>`<div class="item-row"><div class="item-info"><div class="item-title">${f.didascalia||'Foto'}</div><div class="item-sub" style="word-break:break-all;font-size:11px;">${f.url.substring(0,70)}...</div></div><button class="btn-delete" onclick="deleteFoto('${f.id}')">Elimina</button></div>`).join('');
+}
+
+function loadAdminData() { loadEventi(); loadMenuAdmin(); loadFotoAdmin(); }
+
+/* ════════════ PUBLIC LOADERS ════════════ */
+async function loadEventiPublic() {
+  const { data } = await sb.from('eventi').select('*').order('data',{ascending:true});
+  const sec=document.getElementById('eventi-section'), grid=document.getElementById('eventi-grid');
+  if (!data?.length) { sec.style.display='none'; return; }
+  sec.style.display='block';
+  grid.innerHTML = data.map(e=>`<div class="evento-card"><div class="evento-data">${e.data?formatData(e.data):''}${e.ora?' · '+e.ora:''}</div><div class="evento-titolo">${e.titolo}</div>${e.descrizione?`<div class="evento-desc">${e.descrizione}</div>`:''}</div>`).join('');
+}
+
+async function loadOrariPublic() {
+  const { data } = await sb.from('orari').select('*');
+  const sec=document.getElementById('orari-section'), grid=document.getElementById('orari-grid');
+  if (!data?.length) { sec.style.display='none'; return; }
+  sec.style.display='block';
+  const mapDay={0:6,1:0,2:1,3:2,4:3,5:4,6:5};
+  const todayIdx=mapDay[new Date().getDay()];
+  grid.innerHTML = GIORNI.map((g,i)=>{
+    const r=data.find(d=>d.giorno===g), isToday=i===todayIdx;
+    if(!r) return `<div class="orario-card ${isToday?'today':''}"><div class="orario-giorno">${g.slice(0,3)}</div><div class="orario-chiuso">—</div></div>`;
+    return `<div class="orario-card ${isToday?'today':''}"><div class="orario-giorno">${g.slice(0,3)}</div>${r.chiuso?'<div class="orario-chiuso">Chiuso</div>':`<div class="orario-ore">${r.apertura||''}${r.apertura&&r.chiusura?'<br>':''}${r.chiusura||''}</div>`}</div>`;
+  }).join('');
+}
+
+async function loadMenuPublic() {
+  const { data } = await sb.from('menu_voci').select('*').order('categoria').order('ordine');
+  const sec=document.getElementById('menu-din-section'), content=document.getElementById('menu-din-content');
+  if (!data?.length) { sec.style.display='none'; return; }
+  sec.style.display='block';
+  const cats=[...new Set(data.map(v=>v.categoria))];
+  content.innerHTML = cats.map(cat=>`<div class="menu-categoria"><div class="menu-categoria-title">${cat}</div>${data.filter(v=>v.categoria===cat).map(v=>`<div class="menu-voce"><div><div class="menu-voce-nome">${v.nome}</div>${v.descrizione?`<div class="menu-voce-desc">${v.descrizione}</div>`:''}</div>${v.prezzo?`<div class="menu-voce-prezzo">€${Number(v.prezzo).toFixed(2)}</div>`:''}</div>`).join('')}</div>`).join('');
+}
+
+async function loadFotoPublic() {
+  const { data } = await sb.from('foto').select('*').order('created_at',{ascending:false});
+  const sec=document.getElementById('foto-section'), grid=document.getElementById('foto-grid');
+  if (!data?.length) { sec.style.display='none'; return; }
+  sec.style.display='block';
+  grid.innerHTML = data.map(f=>`<div class="foto-item"><img src="${f.url}" alt="${f.didascalia||'Bar Segrate'}" loading="lazy">${f.didascalia?`<div class="foto-caption">${f.didascalia}</div>`:''}</div>`).join('');
+}
+
+function formatData(d) {
+  if(!d) return '';
+  const [y,m,g]=d.split('-');
+  return `${parseInt(g)} ${['','Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'][parseInt(m)]} ${y}`;
+}
+
+/* ── INIT ── */
+loadEventiPublic();
+loadOrariPublic();
+loadMenuPublic();
+loadFotoPublic();
+
+document.getElementById('adminOverlay').addEventListener('click', function(e) {
+  if (e.target===this) closeAdmin();
+});
+</script>
+</body>
+</html>
