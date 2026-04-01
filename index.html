@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bar Segrate</title>
+<title>Bar Centrale</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -28,12 +28,12 @@
 
   /* ── ADMIN BUTTON ── */
   .admin-trigger {
-    position: fixed; bottom: 20px; right: 20px;
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
     background: rgba(200,133,42,0.15); border: 1px solid rgba(232,184,109,0.3);
     color: var(--gold); font-family: 'Raleway', sans-serif; font-size: 11px;
-    letter-spacing: 0.25em; text-transform: uppercase; padding: 10px 16px;
+    letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px;
     cursor: pointer; z-index: 900; transition: all 0.3s;
-    max-width: calc(100vw - 40px);
+    white-space: nowrap;
   }
   .admin-trigger:hover { background: rgba(200,133,42,0.3); border-color: var(--gold); }
 
@@ -272,7 +272,7 @@
   <!-- DASHBOARD -->
   <div class="admin-panel" id="adminDashboard">
     <div class="admin-header">
-      <h1>Dashboard <em>Bar Segrate</em></h1>
+      <h1>Dashboard <em>Bar Centrale</em></h1>
       <button class="btn-logout" onclick="doLogout()">Esci</button>
     </div>
     <div class="admin-tabs">
@@ -352,7 +352,7 @@
 <section class="hero">
   <div class="hero-left">
     <div class="eyebrow">Segrate centro, Milano &nbsp;·&nbsp; Via XXV Aprile, 27, 20054 Segrate MI</div>
-    <h1 class="hero-title">Bar<br><em>Segrate</em></h1>
+    <h1 class="hero-title">Bar<br><em>Centrale</em></h1>
     <p class="hero-desc">Il luogo dove la giornata comincia bene. Un caffè, una brioche, una pausa. Il bar di quartiere che senti tuo fin dal primo sorso.</p>
     <div class="hero-cta">
       <a href="tel:3459064200" class="btn-primary"><span>Chiamaci</span></a>
@@ -380,14 +380,12 @@
   <div>
     <div class="section-label">Chi siamo</div>
     <h2 class="about-title">Un caffè<br>come si<br><em>deve.</em></h2>
-    <p class="about-text">Bar Segrate è il posto dove ci si incontra, ci si siede, e la giornata prende la forma giusta. Siamo qui per chi vuole un espresso fatto bene, una pausa meritata o semplicemente un posto familiare dove sentirsi a casa.</p>
+    <p class="about-text">Bar Centrale è il posto dove ci si incontra, ci si siede, e la giornata prende la forma giusta. Siamo qui per chi vuole un espresso fatto bene, una pausa meritata o semplicemente un posto familiare dove sentirsi a casa.</p>
     <p class="about-text">In Via XXV Aprile, nel cuore di Segrate, il nostro bar è un punto di riferimento per il quartiere — con il calore che solo i bar veri sanno dare.</p>
   </div>
   <div class="stats">
-    <div class="stat-box"><div class="stat-num">Dal</div><div class="stat-label">Mattino presto</div></div>
-    <div class="stat-box"><div class="stat-num">7:30</div><div class="stat-label">Chiusura serale</div></div>
-    <div class="stat-box"><div class="stat-num">☕</div><div class="stat-label">Caffè artigianale</div></div>
-    <div class="stat-box"><div class="stat-num">📍</div><div class="stat-label">Segrate, Milano</div></div>
+    <div class="stat-box"><div class="stat-num">7.00</div><div class="stat-label">Dal mattino presto</div></div>
+    <div class="stat-box"><div class="stat-num">21:30</div><div class="stat-label">Chiusura serale</div></div>
   </div>
 </section>
 
@@ -402,8 +400,7 @@
     <div class="menu-card"><span class="menu-icon">🥪</span><h3 class="menu-card-title">Pranzo rapido</h3><p class="menu-card-desc">Panini, tramezzini, toast. Per chi ha poco tempo ma non vuole rinunciare al gusto.</p></div>
     <div class="menu-card"><span class="menu-icon">🥤</span><h3 class="menu-card-title">Aperitivo</h3><p class="menu-card-desc">Spritz, prosecco e analcolici. Il momento di staccare dalla giornata.</p></div>
     <div class="menu-card"><span class="menu-icon">🧃</span><h3 class="menu-card-title">Bibite</h3><p class="menu-card-desc">Succhi, centrifugati, acque e tanto altro.</p></div>
-  
-</div>
+  </div>
 </section>
 
 <!-- SEZIONI DINAMICHE (appaiono solo se ci sono dati) -->
@@ -635,7 +632,7 @@ async function loadFotoPublic() {
   const sec=document.getElementById('foto-section'), grid=document.getElementById('foto-grid');
   if (!data?.length) { sec.style.display='none'; return; }
   sec.style.display='block';
-  grid.innerHTML = data.map(f=>`<div class="foto-item"><img src="${f.url}" alt="${f.didascalia||'Bar Segrate'}" loading="lazy">${f.didascalia?`<div class="foto-caption">${f.didascalia}</div>`:''}</div>`).join('');
+  grid.innerHTML = data.map(f=>`<div class="foto-item"><img src="${f.url}" alt="${f.didascalia||'Bar Centrale'}" loading="lazy">${f.didascalia?`<div class="foto-caption">${f.didascalia}</div>`:''}</div>`).join('');
 }
 
 function formatData(d) {
