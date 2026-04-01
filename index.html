@@ -99,13 +99,13 @@
   .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 11px; color: var(--latte); letter-spacing: 0.15em; text-transform: uppercase; }
 
   /* ══ LANDING ══ */
-  .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
-  .hero-left { display: flex; flex-direction: column; justify-content: center; padding: clamp(40px,8vw,100px) clamp(24px,8vw,80px); position: relative; z-index: 2; max-width: 800px; }
+  .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; position: relative; overflow: hidden; }
+  .hero-left { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: clamp(40px,8vw,100px) clamp(24px,8vw,80px); position: relative; z-index: 2; max-width: 800px; width: 100%; }
   .eyebrow { font-size: 11px; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); margin-bottom: 28px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.3s; }
   .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(52px, 10vw, 96px); font-weight: 900; line-height: 0.95; margin-bottom: 32px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.5s; }
   .hero-title em { font-style: italic; color: var(--gold); }
-  .hero-desc { font-size: 16px; line-height: 1.8; color: var(--latte); max-width: 480px; margin-bottom: 48px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.7s; }
-  .hero-cta { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; opacity: 0; animation: fadeUp 0.8s ease forwards 0.9s; }
+  .hero-desc { font-size: 16px; line-height: 1.8; color: var(--latte); max-width: 480px; margin-bottom: 48px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.7s; text-align: center; }
+  .hero-cta { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; justify-content: center; opacity: 0; animation: fadeUp 0.8s ease forwards 0.9s; }
   .btn-primary { background: var(--caramel); color: var(--dark); padding: 16px 36px; font-family: 'Raleway', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; transition: all 0.3s ease; position: relative; overflow: hidden; }
   .btn-primary::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gold); transition: left 0.3s ease; }
   .btn-primary:hover::before { left: 0; }
@@ -239,7 +239,7 @@
     .orari-grid { grid-template-columns:repeat(2,1fr); }
     .foto-grid { grid-template-columns:1fr; }
     .menu-card { padding:32px 24px; }
-    .hero-cta { flex-direction:column; align-items:flex-start; gap:16px; }
+    .hero-cta { flex-direction:column; align-items:center; gap:16px; }
   }
 </style>
 </head>
@@ -351,12 +351,12 @@
 
 <section class="hero">
   <div class="hero-left">
-    <div class="eyebrow">Est. Segrate, Milano &nbsp;·&nbsp; Via Conte Suardi 84</div>
+    <div class="eyebrow">Segrate centro, Milano &nbsp;·&nbsp; Via XXV Aprile, 27, 20054 Segrate MI</div>
     <h1 class="hero-title">Bar<br><em>Segrate</em></h1>
     <p class="hero-desc">Il luogo dove la giornata comincia bene. Un caffè, una brioche, una pausa. Il bar di quartiere che senti tuo fin dal primo sorso.</p>
     <div class="hero-cta">
-      <a href="tel:3392966823" class="btn-primary"><span>Chiamaci</span></a>
-      <a href="https://maps.google.com/?q=Via+Conte+Suardi+84+Segrate+MI" target="_blank" class="btn-secondary">Come arrivare</a>
+      <a href="tel:3459064200" class="btn-primary"><span>Chiamaci</span></a>
+      <a href="https://maps.app.goo.gl/Dw9fp4Lud3p4P6GJ8" target="_blank" class="btn-secondary">Come arrivare</a>
     </div>
   </div>
 </section>
@@ -381,7 +381,7 @@
     <div class="section-label">Chi siamo</div>
     <h2 class="about-title">Un caffè<br>come si<br><em>deve.</em></h2>
     <p class="about-text">Bar Segrate è il posto dove ci si incontra, ci si siede, e la giornata prende la forma giusta. Siamo qui per chi vuole un espresso fatto bene, una pausa meritata o semplicemente un posto familiare dove sentirsi a casa.</p>
-    <p class="about-text">In via Conte Suardi, nel cuore di Segrate, il nostro bar è un punto di riferimento per il quartiere — con il calore che solo i bar veri sanno dare.</p>
+    <p class="about-text">In Via XXV Aprile, nel cuore di Segrate, il nostro bar è un punto di riferimento per il quartiere — con il calore che solo i bar veri sanno dare.</p>
   </div>
   <div class="stats">
     <div class="stat-box"><div class="stat-num">Dal</div><div class="stat-label">Mattino presto</div></div>
@@ -401,9 +401,9 @@
     <div class="menu-card"><span class="menu-icon">🥐</span><h3 class="menu-card-title">Colazione</h3><p class="menu-card-desc">Brioche, cornetti, pasticcini freschi. La colazione che ti mette il buon umore.</p></div>
     <div class="menu-card"><span class="menu-icon">🥪</span><h3 class="menu-card-title">Pranzo rapido</h3><p class="menu-card-desc">Panini, tramezzini, toast. Per chi ha poco tempo ma non vuole rinunciare al gusto.</p></div>
     <div class="menu-card"><span class="menu-icon">🥤</span><h3 class="menu-card-title">Aperitivo</h3><p class="menu-card-desc">Spritz, prosecco e analcolici. Il momento di staccare dalla giornata.</p></div>
-    <div class="menu-card"><span class="menu-icon">🍦</span><h3 class="menu-card-title">Gelato &amp; Granita</h3><p class="menu-card-desc">Una pausa fresca quando ne hai più bisogno. Gusti classici e novità stagionali.</p></div>
-    <div class="menu-card"><span class="menu-icon">🧃</span><h3 class="menu-card-title">Bibite &amp; Soft</h3><p class="menu-card-desc">Succhi, centrifugati, acque e tanto altro. Sempre fresco, sempre pronto.</p></div>
-  </div>
+    <div class="menu-card"><span class="menu-icon">🧃</span><h3 class="menu-card-title">Bibite</h3><p class="menu-card-desc">Succhi, centrifugati, acque e tanto altro.</p></div>
+  
+</div>
 </section>
 
 <!-- SEZIONI DINAMICHE (appaiono solo se ci sono dati) -->
@@ -435,18 +435,18 @@
   <div>
     <div class="section-label">Vieni a trovarci</div>
     <h2 class="visit-title">Siamo qui,<br><em>ogni giorno.</em></h2>
-    <p class="visit-sub">Ci trovi in via Conte Suardi, 84 a Segrate. Fermati quando vuoi.</p>
+    <p class="visit-sub">Ci trovi in Via XXV Aprile, 27, 20054 Segrate MI. Fermati quando vuoi.</p>
     <div class="info-rows">
-      <div class="info-row"><div class="info-icon">📍</div><div><div class="info-label">Indirizzo</div><div class="info-val">Via Conte Suardi, 84 · 20090 Segrate MI</div></div></div>
+      <div class="info-row"><div class="info-icon">📍</div><div><div class="info-label">Indirizzo</div><div class="info-val">Via XXV Aprile, 27, 20054 Segrate MI</div></div></div>
       <div class="info-row"><div class="info-icon">🕐</div><div><div class="info-label">Orari</div><div class="info-val">Aperto · Chiude alle 19:30</div></div></div>
-      <div class="info-row"><div class="info-icon">📞</div><div><div class="info-label">Telefono</div><div class="info-val"><a href="tel:3392966823" style="color:inherit;text-decoration:none;">339 296 6823</a></div></div></div>
+      <div class="info-row"><div class="info-icon">📞</div><div><div class="info-label">Telefono</div><div class="info-val"><a href="tel:3459064200" style="color:inherit;text-decoration:none;">345 906 4200</a></div></div></div>
     </div>
   </div>
   <div class="map-placeholder">
     <div class="map-inner">
       <span class="map-pin">📍</span>
-      <div class="map-address">Via Conte Suardi, 84<br>20090 Segrate (MI)</div>
-      <a class="map-link" href="https://maps.google.com/?q=Via+Conte+Suardi+84+20090+Segrate+MI" target="_blank">Apri in Google Maps</a>
+      <div class="map-address">Via XXV Aprile, 27, 20054 Segrate MI<br>20054 Segrate (MI)</div>
+      <a class="map-link" href="https://maps.app.goo.gl/Dw9fp4Lud3p4P6GJ8" target="_blank">Apri in Google Maps</a>
     </div>
   </div>
 </section>
@@ -454,10 +454,10 @@
 <footer>
   <div class="footer-brand">Bar <em>Segrate</em></div>
   <nav class="footer-links">
-    <a href="tel:3392966823" class="footer-link">Chiama</a>
-    <a href="https://maps.google.com/?q=Via+Conte+Suardi+84+Segrate+MI" target="_blank" class="footer-link">Mappa</a>
+    <a href="tel:3459064200" class="footer-link">Chiama</a>
+    <a href="https://maps.app.goo.gl/Dw9fp4Lud3p4P6GJ8" target="_blank" class="footer-link">Mappa</a>
   </nav>
-  <span class="footer-copy">© 2025 Bar Segrate · Segrate, Milano</span>
+  <span class="footer-copy">© 2025 Bar Centrale · Segrate, Milano</span>
 </footer>
 
 <!-- ════════════════════════════
