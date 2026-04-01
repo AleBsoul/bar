@@ -28,11 +28,12 @@
 
   /* ── ADMIN BUTTON ── */
   .admin-trigger {
-    position: fixed; bottom: 28px; right: 28px;
+    position: fixed; bottom: 20px; right: 20px;
     background: rgba(200,133,42,0.15); border: 1px solid rgba(232,184,109,0.3);
     color: var(--gold); font-family: 'Raleway', sans-serif; font-size: 11px;
-    letter-spacing: 0.25em; text-transform: uppercase; padding: 10px 18px;
+    letter-spacing: 0.25em; text-transform: uppercase; padding: 10px 16px;
     cursor: pointer; z-index: 900; transition: all 0.3s;
+    max-width: calc(100vw - 40px);
   }
   .admin-trigger:hover { background: rgba(200,133,42,0.3); border-color: var(--gold); }
 
@@ -98,14 +99,13 @@
   .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 11px; color: var(--latte); letter-spacing: 0.15em; text-transform: uppercase; }
 
   /* ══ LANDING ══ */
-  .hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; position: relative; overflow: hidden; }
-  .hero-left { display: flex; flex-direction: column; justify-content: center; padding: 80px 60px 80px 80px; position: relative; z-index: 2; }
-  .hero-left::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, transparent, var(--gold), transparent); }
+  .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
+  .hero-left { display: flex; flex-direction: column; justify-content: center; padding: clamp(40px,8vw,100px) clamp(24px,8vw,80px); position: relative; z-index: 2; max-width: 800px; }
   .eyebrow { font-size: 11px; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); margin-bottom: 28px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.3s; }
-  .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(56px, 7vw, 96px); font-weight: 900; line-height: 0.95; margin-bottom: 32px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.5s; }
+  .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(52px, 10vw, 96px); font-weight: 900; line-height: 0.95; margin-bottom: 32px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.5s; }
   .hero-title em { font-style: italic; color: var(--gold); }
-  .hero-desc { font-size: 16px; line-height: 1.8; color: var(--latte); max-width: 380px; margin-bottom: 48px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.7s; }
-  .hero-cta { display: flex; gap: 20px; align-items: center; opacity: 0; animation: fadeUp 0.8s ease forwards 0.9s; }
+  .hero-desc { font-size: 16px; line-height: 1.8; color: var(--latte); max-width: 480px; margin-bottom: 48px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.7s; }
+  .hero-cta { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; opacity: 0; animation: fadeUp 0.8s ease forwards 0.9s; }
   .btn-primary { background: var(--caramel); color: var(--dark); padding: 16px 36px; font-family: 'Raleway', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; transition: all 0.3s ease; position: relative; overflow: hidden; }
   .btn-primary::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gold); transition: left 0.3s ease; }
   .btn-primary:hover::before { left: 0; }
@@ -114,15 +114,6 @@
   .btn-secondary:hover { color: var(--gold); }
   .btn-secondary::after { content: '→'; transition: transform 0.3s; }
   .btn-secondary:hover::after { transform: translateX(4px); }
-
-  .hero-right { position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-  .coffee-art { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
-  .cup-wrap { position: relative; width: 340px; height: 340px; opacity: 0; animation: fadeIn 1.2s ease forwards 0.8s; }
-  .hero-circle { position: absolute; border-radius: 50%; border: 1px solid rgba(232,184,109,0.15); }
-  .circle-1 { width: 420px; height: 420px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation: spin 40s linear infinite; }
-  .circle-2 { width: 320px; height: 320px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation: spin 30s linear infinite reverse; }
-  .circle-3 { width: 220px; height: 220px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation: spin 20s linear infinite; }
-  .circle-1::before, .circle-2::before, .circle-3::before { content: ''; position: absolute; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; top: -3px; left: 50%; transform: translateX(-50%); }
 
   .marquee-wrap { background: var(--caramel); overflow: hidden; padding: 14px 0; }
   .marquee-track { display: flex; gap: 60px; animation: marquee 20s linear infinite; white-space: nowrap; }
@@ -217,23 +208,38 @@
 
   @keyframes fadeUp { from { opacity:0;transform:translateY(30px); } to { opacity:1;transform:translateY(0); } }
   @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-  @keyframes spin { to { transform:translate(-50%,-50%) rotate(360deg); } }
   @keyframes marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
   @keyframes bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
 
   @media (max-width:900px) {
-    .hero { grid-template-columns:1fr; }
-    .hero-right { display:none; }
-    .hero-left { padding:80px 40px; }
-    .about,.visit-section { grid-template-columns:1fr;gap:40px;padding:80px 40px; }
-    .menu-section,.dyn-section { padding:80px 40px; }
-    .menu-grid,.eventi-grid,.foto-grid { grid-template-columns:1fr; }
+    .about { grid-template-columns:1fr; gap:40px; padding:60px 24px; }
+    .visit-section { grid-template-columns:1fr; gap:40px; padding:60px 24px; }
+    .menu-section { padding:60px 24px; }
+    .dyn-section { padding:60px 24px; }
+    .menu-grid { grid-template-columns:1fr; }
+    .eventi-grid { grid-template-columns:1fr; }
+    .foto-grid { grid-template-columns:1fr 1fr; }
     .orari-grid { grid-template-columns:repeat(4,1fr); }
-    footer { flex-direction:column;gap:24px;text-align:center;padding:40px; }
-    .footer-links { flex-wrap:wrap;justify-content:center; }
-    .menu-header { flex-direction:column;align-items:flex-start;gap:20px; }
+    footer { flex-direction:column; gap:20px; text-align:center; padding:40px 24px; }
+    .footer-links { flex-wrap:wrap; justify-content:center; }
+    .menu-header { flex-direction:column; align-items:flex-start; gap:16px; }
     .form-row { grid-template-columns:1fr; }
-    .orari-row { grid-template-columns:1fr 1fr;gap:8px; }
+    .orari-row { grid-template-columns:1fr 1fr; gap:8px; }
+    .login-panel { margin:40px 16px; padding:32px 24px; }
+    .admin-panel { padding:24px 16px 60px; }
+    .admin-tabs { flex-wrap:wrap; }
+    .admin-tab { padding:10px 14px; font-size:10px; }
+    .admin-form { padding:20px 16px; }
+    .stat-box { padding:28px 20px; }
+    .stat-num { font-size:38px; }
+  }
+
+  @media (max-width:480px) {
+    .hero-left { padding: 60px 20px; }
+    .orari-grid { grid-template-columns:repeat(2,1fr); }
+    .foto-grid { grid-template-columns:1fr; }
+    .menu-card { padding:32px 24px; }
+    .hero-cta { flex-direction:column; align-items:flex-start; gap:16px; }
   }
 </style>
 </head>
@@ -353,31 +359,6 @@
       <a href="https://maps.google.com/?q=Via+Conte+Suardi+84+Segrate+MI" target="_blank" class="btn-secondary">Come arrivare</a>
     </div>
   </div>
-  <div class="hero-right">
-    <div class="coffee-art">
-      <div class="hero-circle circle-1"></div>
-      <div class="hero-circle circle-2"></div>
-      <div class="hero-circle circle-3"></div>
-      <div class="cup-wrap">
-        <svg viewBox="0 0 340 340" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M130 90 Q125 70 130 50 Q135 30 130 10" stroke="#c8852a" stroke-width="2" stroke-linecap="round" opacity="0.6"><animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/><animate attributeName="d" values="M130 90 Q125 70 130 50 Q135 30 130 10;M130 90 Q135 70 130 50 Q125 30 130 10;M130 90 Q125 70 130 50 Q135 30 130 10" dur="2s" repeatCount="indefinite"/></path>
-          <path d="M170 80 Q165 60 170 40 Q175 20 170 0" stroke="#c8852a" stroke-width="2.5" stroke-linecap="round" opacity="0.5"><animate attributeName="opacity" values="0.5;0;0.5" dur="2.5s" repeatCount="indefinite" begin="0.5s"/></path>
-          <path d="M210 90 Q215 70 210 50 Q205 30 210 10" stroke="#c8852a" stroke-width="2" stroke-linecap="round" opacity="0.6"><animate attributeName="opacity" values="0.6;0;0.6" dur="1.8s" repeatCount="indefinite" begin="1s"/></path>
-          <ellipse cx="170" cy="270" rx="110" ry="14" fill="#1f1208" stroke="#c8852a" stroke-width="1.5"/>
-          <ellipse cx="170" cy="266" rx="90" ry="9" fill="none" stroke="#e8b86d" stroke-width="0.5" opacity="0.4"/>
-          <path d="M100 155 L115 265 Q170 278 225 265 L240 155 Z" fill="#1a0e07" stroke="#c8852a" stroke-width="1.5"/>
-          <ellipse cx="170" cy="155" rx="70" ry="12" fill="#0f0905" stroke="#c8852a" stroke-width="1.5"/>
-          <ellipse cx="170" cy="155" rx="62" ry="10" fill="#3d1f0a"/>
-          <path d="M155 150 Q150 145 155 142 Q160 139 163 143 Q166 139 171 142 Q176 145 171 150 L163 158 Z" fill="#c8852a" opacity="0.7"/>
-          <path d="M240 175 Q280 175 280 205 Q280 235 240 235" stroke="#c8852a" stroke-width="8" stroke-linecap="round" fill="none"/>
-          <path d="M240 183 Q272 183 272 205 Q272 228 240 228" stroke="#1a0e07" stroke-width="4" stroke-linecap="round" fill="none"/>
-          <path d="M120 175 Q125 165 135 168" stroke="#e8b86d" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-          <path d="M220 260 L260 300" stroke="#e8b86d" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
-          <ellipse cx="220" cy="258" rx="8" ry="5" fill="#e8b86d" opacity="0.7" transform="rotate(-45 220 258)"/>
-        </svg>
-      </div>
-    </div>
-  </div>
 </section>
 
 <div class="marquee-wrap">
@@ -420,8 +401,8 @@
     <div class="menu-card"><span class="menu-icon">🥐</span><h3 class="menu-card-title">Colazione</h3><p class="menu-card-desc">Brioche, cornetti, pasticcini freschi. La colazione che ti mette il buon umore.</p></div>
     <div class="menu-card"><span class="menu-icon">🥪</span><h3 class="menu-card-title">Pranzo rapido</h3><p class="menu-card-desc">Panini, tramezzini, toast. Per chi ha poco tempo ma non vuole rinunciare al gusto.</p></div>
     <div class="menu-card"><span class="menu-icon">🥤</span><h3 class="menu-card-title">Aperitivo</h3><p class="menu-card-desc">Spritz, prosecco e analcolici. Il momento di staccare dalla giornata.</p></div>
-    <div class="menu-card"><span class="menu-icon">🍦</span><h3 class="menu-card-title">Gelato</h3><p class="menu-card-desc">Una pausa fresca quando ne hai più bisogno. Gusti classici e novità stagionali.</p></div>
-    <div class="menu-card"><span class="menu-icon">🧃</span><h3 class="menu-card-title">Bibite</h3><p class="menu-card-desc">Succhi, centrifugati, acque e tanto altro. Sempre fresco.</p></div>
+    <div class="menu-card"><span class="menu-icon">🍦</span><h3 class="menu-card-title">Gelato &amp; Granita</h3><p class="menu-card-desc">Una pausa fresca quando ne hai più bisogno. Gusti classici e novità stagionali.</p></div>
+    <div class="menu-card"><span class="menu-icon">🧃</span><h3 class="menu-card-title">Bibite &amp; Soft</h3><p class="menu-card-desc">Succhi, centrifugati, acque e tanto altro. Sempre fresco, sempre pronto.</p></div>
   </div>
 </section>
 
